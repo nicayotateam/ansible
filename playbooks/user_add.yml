@@ -1,0 +1,39 @@
+- hosts: all
+  become: yes
+  gather_facts: false  # Opcional: puede ser true o false según tus necesidades
+  tasks:
+    - name: Add User
+      user:
+        name: "{{ user }}"
+        password: "{{ passw | password_hash('sha512') }}"
+        shell: /bin/bash
+        state: present
+        comment: "{{ descrip }}"
+
+    - name: Add Sudo
+      lineinfile:
+        path: /etc/sudoers
+        insertbefore: EOF
+        line: "{{ user }}    ALL=(ALL:ALL) ALL"
+        
+    - name: Add Directory
+      file:
+        path: "/home/{{ user }}/.ssh"
+        state: directory
+        owner: "{{ user }}"
+        group: "{{ user }}"
+
+    - name: Add File 
+      file:
+        path: "/home/{{ user }}/.ssh/authorized_keys"
+        state: touch
+        owner: "{{ user }}"
+        group: "{{ user }}"
+        mode: '0600'
+
+    - name: Add key
+      lineinfile:
+        path: "/home/{{ user }}/.ssh/authorized_keys"
+        insertbefore: EOF
+        line: "ssh-rsa {{ keypu }}"
+        
