@@ -1,0 +1,41 @@
+- hosts: all
+  become: true
+  tasks:
+    - name: Instalar iptables-persistent
+      apt:
+        name: iptables-persistent
+        state: present
+    
+    - name: Crear reglas para la red de IT - destino puerto
+      iptables:
+        chain: INPUT
+        protocol: tcp
+        source: "{{ IP }}"
+        destination_port: "{{ ports }}"
+        jump: ACCEPT
+      when: type == 'dport'
+        
+    - name: Crear reglas para la red de IT - multiport
+      iptables:
+        chain: INPUT
+        protocol: tcp
+        source: "{{ IP }}"
+        destination_port:
+        - 80
+        - 22
+        jump: ACCEPT
+      #loop: "{{ ports }}"  
+      when: type != 'dport'
+            
+    - name: Permitir tráfico relacionado/establecido
+      iptables:
+        chain: INPUT
+        match: conntrack
+        ctstate: RELATED,ESTABLISHED
+        jump: ACCEPT
+
+    - name: Permitir tráfico en interfaz de loopback
+      iptables:
+        chain: INPUT
+        in_interface: lo
+        jump: ACCEPT     

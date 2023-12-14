@@ -1,0 +1,11 @@
+- hosts: all
+  become: yes
+  tasks:
+    - name: Eliminar usuario
+      shell: "userdel -f -r {{ username }}"
+      
+    - name: Eliminar usuario de sudoers
+      lineinfile:
+         path: /etc/sudoers
+         state: absent
+         regexp: '^{{ username }}\s'
